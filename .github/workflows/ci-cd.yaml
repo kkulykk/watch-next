@@ -1,0 +1,29 @@
+name: Sanity checks
+
+on:
+  push:
+
+jobs:
+  build-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+          cache: 'yarn'
+        run: |
+          cd app
+          npm install -g yarn
+          yarn install
+      - name: Check code style with ESLint
+        run: |
+          cd app
+          yarn lint
+      - name: Build frontend
+        run: |
+          cd app
+          yarn build
