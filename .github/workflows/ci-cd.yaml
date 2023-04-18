@@ -11,17 +11,16 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install dependencies
-        with:
-          node-version: '14'
-          cache: 'yarn'
         run: |
           cd app
           npm install -g yarn
           yarn install
+
       - name: Check code style with ESLint
         run: |
           cd app
           yarn lint
+
       - name: Build frontend
         run: |
           cd app
