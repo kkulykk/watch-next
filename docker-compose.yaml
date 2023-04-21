@@ -1,14 +1,44 @@
 services:
-  # frontend
+  # <<-- FRONTEND -->>
   app:
     build: ./app
     ports:
       - 3000:3000
+    links:
+      - signup-login-ms
+      - movie-search-ms
 
-  # backend
+  # <<-- BACKEND -->>
   signup-login-ms:
-    build: ./login-signup
-    ports:
-      - 3000:3000
+    build:
+      context: ./backend/signup-login-ms/
+      dockerfile: ../../fastapi.dockerfile
+  movie-search-ms:
+    build:
+      context: ./backend/signup-login-ms/
+      dockerfile: ../../fastapi.dockerfile
+  recommendation-ms:
+    build:
+      context: ./backend/recommendation-ms/
+      dockerfile: ../../fastapi.dockerfile
+  user-search-ms:
+    build:
+      context: ./backend/user-search-ms/
+      dockerfile: ../../fastapi.dockerfile
 
+  user-db:
+    image: mysql:latest #TODO: is latest appropriate?
 
+  watchlist-ms:
+    build:
+      context: ./backend/watchlist-ms/
+      dockerfile: ../../fastapi.dockerfile
+  watchlist-db:
+    image: cassandra:latest #TODO: is latest appropriate?
+
+  analytics-ms:
+    build:
+      context: ./backend/analytics-ms/
+      dockerfile: ../../fastapi.dockerfile
+  analytics-db:
+    image: neo4j:latest #TODO: is latest appropriate?
