@@ -1,0 +1,14 @@
+services:
+  # frontend
+  app:
+    build: ./app
+    ports:
+      - 3000:3000
+
+  # backend
+  signup-login-ms:
+    build: ./login-signup
+    ports:
+      - 3000:3000
+
+
