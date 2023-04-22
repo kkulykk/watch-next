@@ -4,14 +4,11 @@ services:
     build: ./app
     ports:
       - 3000:3000
-    links:
-      - signup-login-ms
-      - movie-search-ms
 
   # <<-- BACKEND -->>
   movie-search-ms:
     build:
-      context: ./backend/signup-login-ms/
+      context: ./backend/movie-search-ms/
       dockerfile: ../../fastapi.dockerfile
   recommendation-ms:
     build:
@@ -23,18 +20,18 @@ services:
       dockerfile: ../../fastapi.dockerfile
 
   user-db:
-    image: mysql:latest #TODO: is latest appropriate?
+    image: mysql:latest
 
   watchlist-ms:
     build:
       context: ./backend/watchlist-ms/
       dockerfile: ../../fastapi.dockerfile
   watchlist-db:
-    image: cassandra:latest #TODO: is latest appropriate?
+    image: cassandra:latest
 
   analytics-ms:
     build:
       context: ./backend/analytics-ms/
       dockerfile: ../../fastapi.dockerfile
   analytics-db:
-    image: neo4j:latest #TODO: is latest appropriate?
+    image: neo4j:latest
