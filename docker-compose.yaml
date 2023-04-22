@@ -9,10 +9,6 @@ services:
       - movie-search-ms
 
   # <<-- BACKEND -->>
-  signup-login-ms:
-    build:
-      context: ./backend/signup-login-ms/
-      dockerfile: ../../fastapi.dockerfile
   movie-search-ms:
     build:
       context: ./backend/signup-login-ms/
@@ -21,9 +17,9 @@ services:
     build:
       context: ./backend/recommendation-ms/
       dockerfile: ../../fastapi.dockerfile
-  user-search-ms:
+  user-ms:
     build:
-      context: ./backend/user-search-ms/
+      context: ./backend/user-ms/
       dockerfile: ../../fastapi.dockerfile
 
   user-db:
