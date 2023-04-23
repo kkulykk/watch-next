@@ -20,12 +20,12 @@ class RepositorySingleton():
         self._session = self._cluster.connect(KEYSPACE)
         
         self._read_watchlists_by_uid_statement = self._session.prepare(
-            "SELECT watchlist_id, watchlist_name FROM watchlists_by_uid "
+            "SELECT watchlist_id, watchlist_name, last_edit_timestamp FROM watchlists_by_uid "
             "WHERE uid=?"
         )
         self._create_watchlist_statement = self._session.prepare(
-            "INSERT INTO watchlists_by_uid(uid, watchlist_id, watchlist_name, movie_ids) "
-            "VALUES (?, now(), ?, {})"
+            "INSERT INTO watchlists_by_uid(uid, watchlist_id, watchlist_name, movie_ids, last_edit_timestamp) "
+            "VALUES (?, now(), ?, {}, toTimestamp(now()))"
             )
         self._delete_watchlist_statement = self._session.prepare(
             "DELETE FROM watchlists_by_uid "
@@ -38,12 +38,12 @@ class RepositorySingleton():
         )
         self._add_movie_to_watchlist_statement = self._session.prepare(
             "UPDATE watchlists_by_uid "
-            "SET movie_ids = movie_ids + ? "
+            "SET movie_ids = movie_ids + ?, last_edit_timestamp = toTimestamp(now()) "
             "WHERE uid=? AND watchlist_id=?"
             )
         self._remove_movie_from_watchlist = self._session.prepare(
             "UPDATE watchlists_by_uid "
-            "SET movie_ids = movie_ids - ? "
+            "SET movie_ids = movie_ids - ?, last_edit_timestamp = toTimestamp(now()) "
             "WHERE uid=? AND watchlist_id=?"
         )
 
@@ -51,7 +51,11 @@ class RepositorySingleton():
     def read_watchlists_by_uid(self, uid: str) -> List[WatchList]:
         stmt = self._read_watchlists_by_uid_statement
         res = self._session.execute(stmt, (uid,))
-        return [WatchList(watchlist_id=str(row.watchlist_id), watchlist_name=row.watchlist_name) for row in res]
+        return [WatchList(
+            watchlist_id=str(row.watchlist_id),
+            watchlist_name=row.watchlist_name,
+            last_edit_timestamp=int(row.last_edit_timestamp.timestamp())
+            ) for row in res]
 
     def create_watchlist(self, uid: str, watchlist_name: str):
         stmt = self._create_watchlist_statement
