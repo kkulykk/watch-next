@@ -28,6 +28,22 @@ services:
       dockerfile: ../../fastapi.dockerfile
   watchlist-db:
     image: cassandra:latest
+    healthcheck:
+      test: ["CMD-SHELL", "[ $$(nodetool statusgossip) = running ]"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+  watchlist-db-setuper:
+    image: cassandra:latest
+    depends_on:
+      watchlist-db:
+        condition:
+          service_healthy
+    restart: "no"
+    entrypoint: ["/setup_watchlist-db.sh"]
+    volumes:
+      - ./scripts/create_tables.cql:/create_tables.cql
+      - ./scripts/setup_watchlist-db.sh:/setup_watchlist-db.sh
 
   analytics-ms:
     build:
