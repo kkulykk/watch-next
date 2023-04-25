@@ -1,2 +1,9 @@
 fastapi
+sqlalchemy
+pyjwt
+passlib
+cryptography
+pydantic
+sqlalchemy-utils
+pymysql
 uvicorn[standard]

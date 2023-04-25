@@ -1,37 +1,36 @@
+version: "2"
 services:
   # <<-- FRONTEND -->>
-  app:
-    build: ./app
-    ports:
-      - 3000:3000
+  #app:
+  #  build: ./app
+  #  ports:
+  #    - 3000:3000
 
   # <<-- BACKEND -->>
-  movie-search-ms:
-    build:
-      context: ./backend/movie-search-ms/
-      dockerfile: ../../fastapi.dockerfile
-  recommendation-ms:
-    build:
-      context: ./backend/recommendation-ms/
-      dockerfile: ../../fastapi.dockerfile
   user-ms:
-    build:
-      context: ./backend/user-ms/
-      dockerfile: ../../fastapi.dockerfile
-
+    build: ./backend/user-ms/
+    ports:
+     - '3360:3360'
+    expose:
+     - '3360'
+    depends_on:
+      user-db:
+        condition: service_healthy
+    links:
+     - user-db
+  
   user-db:
     image: mysql:latest
-
-  watchlist-ms:
-    build:
-      context: ./backend/watchlist-ms/
-      dockerfile: ../../fastapi.dockerfile
-  watchlist-db:
-    image: cassandra:latest
-
-  analytics-ms:
-    build:
-      context: ./backend/analytics-ms/
-      dockerfile: ../../fastapi.dockerfile
-  analytics-db:
-    image: neo4j:latest
+    ports:
+      - '3306:3306'
+    expose:
+      - '3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: 1111
+      MYSQL_USER: "root"
+      MYSQL_HOST: "used-db"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-P", "3306"]
+      interval: 10s
+      timeout: 30s
+      retries: 5

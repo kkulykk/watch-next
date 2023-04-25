@@ -18,3 +18,8 @@ To stop the containers, run the following in the project root directory:
 ```bash
 $ docker compose down
 ```
+
+## ```users-ms```
+
+use test.py in backend/user-ms for testing
+
