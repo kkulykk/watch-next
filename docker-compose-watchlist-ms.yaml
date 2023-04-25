@@ -1,31 +1,13 @@
+# This file is used in pair with test_watchlist_ms.py
+
 services:
-  # <<-- FRONTEND -->>
-  app:
-    build: ./app
-    ports:
-      - 3000:3000
-
   # <<-- BACKEND -->>
-  movie-search-ms:
-    build:
-      context: ./backend/movie-search-ms/
-      dockerfile: ../../fastapi.dockerfile
-  recommendation-ms:
-    build:
-      context: ./backend/recommendation-ms/
-      dockerfile: ../../fastapi.dockerfile
-  user-ms:
-    build:
-      context: ./backend/user-ms/
-      dockerfile: ../../fastapi.dockerfile
-
-  user-db:
-    image: mysql:latest
-
   watchlist-ms:
     build:
       context: ./backend/watchlist-ms/
       dockerfile: ../../fastapi.dockerfile
+    ports:
+      - 50001:80
   watchlist-db:
     image: cassandra:latest
     healthcheck:
@@ -44,10 +26,3 @@ services:
     volumes:
       - ./scripts/create_tables.cql:/create_tables.cql
       - ./scripts/setup_watchlist-db.sh:/setup_watchlist-db.sh
-
-  analytics-ms:
-    build:
-      context: ./backend/analytics-ms/
-      dockerfile: ../../fastapi.dockerfile
-  analytics-db:
-    image: neo4j:latest
