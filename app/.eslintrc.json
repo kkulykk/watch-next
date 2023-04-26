@@ -15,11 +15,13 @@
         "sourceType": "module"
     },
     "plugins": ["react"],
+    "ignorePatterns": "webpack.config.js",
     "rules": {
         "react/react-in-jsx-scope": "off",
-        "indent": ["error", 4],
+        "indent": ["error", 2],
         "linebreak-style": ["error", "unix"],
         "quotes": ["error", "single"],
-        "semi": ["error", "always"]
+        "semi": ["error", "always"],
+        "no-unused-vars": "warn"
     }
 }
