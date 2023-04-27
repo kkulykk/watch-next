@@ -10,15 +10,18 @@ services:
     build:
       context: ./backend/movie-search-ms/
       dockerfile: ../../fastapi.dockerfile
+
   recommendation-ms:
     build:
       context: ./backend/recommendation-ms/
       dockerfile: ../../fastapi.dockerfile
+  recommendation-db:
+    image: neo4j:latest
+
   user-ms:
     build:
       context: ./backend/user-ms/
       dockerfile: ../../fastapi.dockerfile
-
   user-db:
     image: mysql:latest
 
@@ -34,4 +37,7 @@ services:
       context: ./backend/analytics-ms/
       dockerfile: ../../fastapi.dockerfile
   analytics-db:
-    image: neo4j:latest
+    image: mongo:latest
+    restart: always
+    ports:
+      - 27017:27017
