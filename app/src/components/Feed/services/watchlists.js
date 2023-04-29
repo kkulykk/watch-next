@@ -1,7 +1,7 @@
-import { apiUrl, checkResponse } from '../../apiUrl';
+import { watchlistMsUrl, checkResponse } from '../../apiUrl';
 
 export const createWatchlist = async (watchlistName) => {
-  const url = `${apiUrl()}/users/2811/watchlists?watchlist_name=${watchlistName}`;
+  const url = `${watchlistMsUrl()}/users/2811/watchlists?watchlist_name=${watchlistName}`;
 
   return fetch(url, {
     method: 'POST'
@@ -9,31 +9,31 @@ export const createWatchlist = async (watchlistName) => {
 };
 
 export const getWatchlists = async () => {
-  const url = `${apiUrl()}/users/2811/watchlists`;
+  const url = `${watchlistMsUrl()}/users/2811/watchlists`;
 
   return fetch(url).then(checkResponse);
 };
 
 export const deleteWatchlist = async (watchlistId) => {
-  const url = `http://localhost:50001/users/2811/watchlists/${watchlistId}`;
+  const url = `${watchlistMsUrl}/users/2811/watchlists/${watchlistId}`;
 
   return fetch(url, { method: 'DELETE' }).then(checkResponse);
 };
 
 export const getWatchlistFilms = async (watchlistId) => {
-  const url = `${apiUrl()}/users/2811/watchlists/${watchlistId}/movies`;
+  const url = `${watchlistMsUrl()}/users/2811/watchlists/${watchlistId}/movies`;
 
   return fetch(url).then(checkResponse);
 };
 
 export const putFilmsToWatchlist = async (watchlistId, movieId) => {
-  const url = `${apiUrl()}/users/2811/watchlists/${watchlistId}/movies/${movieId}`;
+  const url = `${watchlistMsUrl()}/users/2811/watchlists/${watchlistId}/movies/${movieId}`;
 
   return fetch(url, { method: 'PUT' }).then(checkResponse);
 };
 
 export const removeFilmFromWatchlist = async (watchlistId, movieId) => {
-  const url = `${apiUrl()}/users/2811/watchlists/${watchlistId}/movies/${movieId}`;
+  const url = `${watchlistMsUrl()}/users/2811/watchlists/${watchlistId}/movies/${movieId}`;
 
   return fetch(url, { method: 'DELETE' }).then(checkResponse);
 };
