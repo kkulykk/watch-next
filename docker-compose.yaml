@@ -57,8 +57,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-    ulimits:
-      memlock: -1
   watchlist-db-setuper:
     image: cassandra:latest
     depends_on:
