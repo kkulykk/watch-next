@@ -15,7 +15,7 @@ export const getWatchlists = async () => {
 };
 
 export const deleteWatchlist = async (watchlistId) => {
-  const url = `${watchlistMsUrl}/users/2811/watchlists/${watchlistId}`;
+  const url = `${watchlistMsUrl()}/users/2811/watchlists/${watchlistId}`;
 
   return fetch(url, { method: 'DELETE' }).then(checkResponse);
 };
