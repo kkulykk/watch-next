@@ -1,5 +1,4 @@
 from pydantic import BaseModel, Field
-import datetime
 
 class WatchList(BaseModel):
     watchlist_id: str
