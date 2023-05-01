@@ -6,4 +6,6 @@ cryptography
 pydantic
 sqlalchemy-utils
 pymysql
+python-multipart[cryptography]
+orjson
 uvicorn[standard]

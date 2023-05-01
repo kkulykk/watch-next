@@ -1,23 +1,15 @@
-import pydantic
+from pydantic import BaseModel
+from pydantic.dataclasses import dataclass
+from fastapi import Form
 
-class UserBase(pydantic.BaseModel):
-    email: str
+@dataclass
+class AdditionalUserDataForm:
+    email: str = Form()
 
-class UserCreate(UserBase):
-    hashed_password: str
-
-    class Config:
-        orm_mode = True
-
-class UserLogin(UserBase):
-    hashed_password: str
-
-    class Config:
-        orm_mode = True
-
-class User(UserBase):
+class User(BaseModel):
     id: int
-
+    email: str
+    username: str
+    hashed_password: str
     class Config:
         orm_mode = True
-

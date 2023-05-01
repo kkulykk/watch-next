@@ -1,9 +1,11 @@
 import requests
 import json
 
-def create_user(email: str, password: str):
-	r = requests.post("http://localhost:3360/api/create",\
-					  json={"email": email, "hashed_password": password})
+def create_user(email: str, username, password: str):
+	r = requests.post("http://localhost:3360/create",
+					  data={"email": email,
+					  		"username": username,
+							"hashed_password": password})
 	r = json.loads(r.text)
 	if "detail" in r:
 		return r["detail"]
@@ -11,9 +13,10 @@ def create_user(email: str, password: str):
 		return r
 	return {"access_token": r["access_token"]}
 
-def login(email: str, password: str):
-	r = requests.post("http://localhost:3360/api/login",\
-					  json={"email": email, "hashed_password": password})
+def login(username: str, password: str):
+	r = requests.post("http://localhost:3360/login",
+					  data={"username": username,
+					  		"hashed_password": password})
 	r = json.loads(r.text)
 	if "detail" in r:
 		return r["detail"]
@@ -23,5 +26,12 @@ def login(email: str, password: str):
 
 def hello(name: str):
 	return requests.get(f"http://localhost:3360/hello/{name}")
+
+def post_to(url, json):
+	r = requests.post(url, json)
+	return r.text
+
+
+
 
 

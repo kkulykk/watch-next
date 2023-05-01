@@ -27,7 +27,6 @@ services:
       - '3306'
     environment:
       MYSQL_ROOT_PASSWORD: 1111
-      MYSQL_USER: "root"
       MYSQL_HOST: "used-db"
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-P", "3306"]
