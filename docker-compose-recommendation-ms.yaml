@@ -1,8 +1,8 @@
-version: "2"
+version: '2'
 services:
-  recommendation-ms:
-    build: ./backend/recommendation-ms/
+  abc-ms:
+    build: ./backend/recommendation-ms
     ports:
-     - '3361:3361'
+      - "3361:3361"
     expose:
-     - '3361'
+      - "3361"

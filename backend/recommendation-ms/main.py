@@ -5,8 +5,7 @@ from fastapi import FastAPI, Header, Response, Request
 
 app = FastAPI()
 
-current_recDB_endpoint = "http://localhost:8080/"
-driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "12345678"))
+driver = GraphDatabase.driver("bolt://neo4j:7687", auth=("neo4j", "mypassword"))
 
 
 TMDB_API_ENDPOINT = "https://api.themoviedb.org/3"
@@ -46,20 +45,34 @@ async def get_recommendations(user_id: int):
         result = session.run(query, user_id=user_id)
         for_imdb = list(result)
     
-    from_imdb_recomendations = []
+    fromimdb_ids = []
     
-    for tmdb_id in records1:
-        response = requests.get(f"{TMDB_API_ENDPOINT}/movie/{tmdb_id}/recommendations",
-                                params={"api_key": TMDB_API_KEY})
-        if response.status_code == 200:
-            results = response.json().get("results", [])
-            for result in results:
-                if result["id"] not in records1 and result not in from_imdb_recomendations:
-                    from_imdb_recomendations.append(result)
+    if len(for_imdb)>0:
+        for tmdb_id in for_imdb:
+            response = requests.get(f"{TMDB_API_ENDPOINT}/movie/{tmdb_id}/recommendations",
+                                    params={"api_key": TMDB_API_KEY})
+            if response.status_code == 200:
+                results = response.json().get("results", [])
+                for result in results:
+                    if result["id"] not in records1 and result not in from_imdb_recomendations and result not in for_imdb:
+                        from_imdb_recomendations.append(result)
+        from_imdb_recomendations = sorted(from_imdb_recomendations, key=lambda r: r["vote_average"], reverse=True)[:to_collect_from_tmdb]
+        fromimdb_ids = [i["id"] for i in from_imdb_recomendations]
         
-    
-    from_imdb_recomendations = sorted(from_imdb_recomendations, key=lambda r: r["vote_average"], reverse=True)[:to_collect_from_tmdb]
-    fromimdb_ids = [i["id"] for i in from_imdb_recomendations]
+    elif len(for_imdb)==0 or len(fromimdb_ids)+len(records1)!=10:
+        n = 0
+        if len(for_imdb)==0:
+            n = 10 - len(records1)
+        
+        if len(fromimdb_ids)+len(records1)!=10:
+            n = 10 - (len(fromimdb_ids)+len(records1))
+        
+        url_new = f"{TMDB_API_ENDPOINT}movie/popular"
+        response = requests.get(url_new, params={"api_key": TMDB_API_KEY})
+        results = response.json()["results"]
+        top_movies = sorted(results, key=lambda x: x["popularity"], reverse=True)[:10]
+        fromimdb_ids = [movie["id"] for movie in top_movies]
+
     return {'recommendations films : ' : records1 + fromimdb_ids}
 
 

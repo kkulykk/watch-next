@@ -1,42 +1,22 @@
+version: "3.9"
+
 services:
-  # <<-- FRONTEND -->>
-  app:
-    build: ./app
-    ports:
-      - 3000:3000
-
-  # <<-- BACKEND -->>
-  movie-search-ms:
-    build:
-      context: ./backend/movie-search-ms/
-      dockerfile: ../../fastapi.dockerfile
   recommendation-ms:
-    build: ./backend/recommendation-ms/
+    build: ./backend/recommendation-ms
     ports:
-     - '3361:3361'
-    expose:
-     - '3361'
-  recommendation-db:
+      - "80:80"
+    depends_on:
+      - neo4j
+    environment:
+      - NEO4J_HOST=neo4j
+      - NEO4J_PORT=7687
+      - NEO4J_USERNAME=myusername
+      - NEO4J_PASSWORD=mypassword
+
+  neo4j:
     image: neo4j:latest
-
-  user-ms:
-    build:
-      context: ./backend/user-ms/
-      dockerfile: ../../fastapi.dockerfile
-
-  user-db:
-    image: mysql:latest
-
-  watchlist-ms:
-    build:
-      context: ./backend/watchlist-ms/
-      dockerfile: ../../fastapi.dockerfile
-  watchlist-db:
-    image: cassandra:latest
-
-  analytics-ms:
-    build:
-      context: ./backend/analytics-ms/
-      dockerfile: ../../fastapi.dockerfile
-  analytics-db:
-    image: neo4j:latest
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      - NEO4J_AUTH=neo4j/mypassword
