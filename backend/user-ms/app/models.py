@@ -11,7 +11,7 @@ class User(database.Base):
     email = Column(String(256), unique=True, index=True)
     username = Column(String(256), unique=True, index=True)
     hashed_password = Column(String(256))
-    
+
     def __str__(self):
         return f"User<{self.id},{self.email},{self.username},{self.hashed_password}>"
 
@@ -24,6 +24,10 @@ class Connection(database.Base):
     u1 = orm.mapped_column(ForeignKey("user.id"))
     u2 = orm.mapped_column(ForeignKey("user.id"))
     
+    def __init__(self, u1, u2):
+        self.u1 = u1
+        self.u2 = u2
+
     def __str__(self):
         return f"Connection<{self.u1},{self.u2}>"
 
