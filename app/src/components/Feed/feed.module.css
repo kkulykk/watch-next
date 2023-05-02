@@ -14,9 +14,9 @@
     flex-direction: column;
     width: 100vw;
     background: rgba(22, 22, 22, 0.34);
-    margin-top: 25px;
     padding: 50px;
     height: fit-content;
+    min-height: calc(80vh - 76px - 50px);
 }
 
 .watchlistItems {

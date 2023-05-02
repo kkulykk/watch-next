@@ -1,9 +1,10 @@
 import to from 'await-to-js';
 import { useState, useEffect } from 'react';
-import { Button, Text, Loading } from '@nextui-org/react';
+import { Button, Text, Loading, Container } from '@nextui-org/react';
 
 import WatchlistCard from './components/WatchlistCard';
 import CreateWatchlistModal from './components/CreateWatchlistModal';
+import NavigationBar from '../NavigationBar/NavigationBar';
 import { deleteWatchlist, getWatchlists } from './services/watchlists';
 import { alert } from '../alerts';
 
@@ -48,18 +49,25 @@ const Feed = () => {
 
   return (
     <div className={styles.background}>
+      <NavigationBar />
       <CreateWatchlistModal
         isVisible={isCreateWatchlistModalVisible}
         visibilityHandler={setIsCreateWatchlistModalVisible}
         fetchUserWatchlistsHandler={fetchUserWatchlistsHandler}
       />
-      <Text size="$3xl">Profile</Text>
-      <Text h1 size={60} css={{ color: 'white' }} weight="bold">
-        Roman Kulyk
-      </Text>
-      <Text>{`${userWatchlists.length} watchlists`}</Text>
-      <Text>54 followers</Text>
-      <Text>34 following</Text>
+      <div style={{ minHeight: '20vh', margin: '2% 0', marginLeft: '15%' }}>
+        <Text h5 size="$3xl">
+          Profile
+        </Text>
+        <Text h1 size={60} css={{ color: 'white', maxWidth: 'fit-content', margin: 0 }} weight="bold">
+          Roman Kulyk
+        </Text>
+        <Container display="flex" css={{ gap: '25px', padding: 0 }}>
+          <Text>{`${userWatchlists.length} watchlists`}</Text>
+          <Text>54 followers</Text>
+          <Text>34 following</Text>
+        </Container>
+      </div>
       <div className={styles.watchlistBackground}>
         <div className={styles.watchlistButtons}>
           <Text h3 color="white">
