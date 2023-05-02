@@ -13,71 +13,81 @@ TMDB_API_KEY = "9be9f81b03a97c8ad1b8a4a41fb190bd"
 
 @app.get("/recommendations/{user_id}")
 async def get_recommendations(user_id: int):
-    records1 = []
-    with driver.session() as session:
-        query = """
-        MATCH (u:User {user_id: $user_id})-[:LIKES|RATES|WATCHLIST]->(m:Movie)
-        WITH u, collect(m.genre) AS genres
-        MATCH (other:Movie)
-        WHERE NOT (u)-[:LIKES|RATES|WATCHLIST]->(other) AND other.genre IN genres
-        WITH DISTINCT other.movie_id AS other_movie_id, other.genre AS other_genre, other.rating AS rating
-        RETURN other_movie_id, other_genre, rating
-        ORDER BY rating DESC
-        LIMIT 5
-        """
+    try:
+        records1 = []
+        with driver.session() as session:
+            query = """
+            MATCH (u:User {user_id: $user_id})-[:LIKES|RATES|WATCHLIST]->(m:Movie)
+            WITH u, collect(m.genre) AS genres
+            MATCH (other:Movie)
+            WHERE NOT (u)-[:LIKES|RATES|WATCHLIST]->(other) AND other.genre IN genres
+            WITH DISTINCT other.movie_id AS other_movie_id, other.genre AS other_genre, other.rating AS rating
+            RETURN other_movie_id, other_genre, rating
+            ORDER BY rating DESC
+            LIMIT 5
+            """
 
-        result = session.run(query, user_id=user_id)
-        lst = list(result)
+            result = session.run(query, {"user_id": user_id})
+            lst = list(result)
 
-        for record in lst:
-            records1.append(record['other_movie_id'])
+            for record in lst:
+                records1.append(record['other_movie_id'])
 
-    to_collect_from_tmdb = 10-len(records1)
-    for_imdb = []
-    with driver.session() as session:
-        query = """
-        MATCH (u:User {user_id: $user_id})-[:LIKES|RATES|WATCHLIST]->(m:Movie)
-        WHERE m.rating IS NOT NULL
-        RETURN m.movie_id, m.genre, m.rating
-        ORDER BY m.rating DESC
-        LIMIT 10
-        """
-        result = session.run(query, user_id=user_id)
-        for_imdb = list(result)
+        to_collect_from_tmdb = 10-len(records1)
+        for_imdb = []
+        with driver.session() as session:
+            query = """
+            MATCH (u:User {user_id: $user_id})-[:LIKES|RATES|WATCHLIST]->(m:Movie)
+            WHERE m.rating IS NOT NULL
+            RETURN m.movie_id, m.genre, m.rating
+            ORDER BY m.rating DESC
+            LIMIT 10
+            """
+            result = session.run(query, {"user_id": user_id})
+            for_imdb = list(result)
+        
+        fromimdb_ids = []
+        print(fromimdb_ids)
     
-    fromimdb_ids = []
-    
-    if len(for_imdb)>0:
-        for tmdb_id in for_imdb:
-            response = requests.get(f"{TMDB_API_ENDPOINT}/movie/{tmdb_id}/recommendations",
-                                    params={"api_key": TMDB_API_KEY})
-            if response.status_code == 200:
-                results = response.json().get("results", [])
-                for result in results:
-                    if result["id"] not in records1 and result not in from_imdb_recomendations and result not in for_imdb:
-                        from_imdb_recomendations.append(result)
-        from_imdb_recomendations = sorted(from_imdb_recomendations, key=lambda r: r["vote_average"], reverse=True)[:to_collect_from_tmdb]
-        fromimdb_ids = [i["id"] for i in from_imdb_recomendations]
-        
-    elif len(for_imdb)==0 or len(fromimdb_ids)+len(records1)!=10:
-        n = 0
-        if len(for_imdb)==0:
-            n = 10 - len(records1)
-        
-        if len(fromimdb_ids)+len(records1)!=10:
-            n = 10 - (len(fromimdb_ids)+len(records1))
-        
-        url_new = f"{TMDB_API_ENDPOINT}movie/popular"
-        response = requests.get(url_new, params={"api_key": TMDB_API_KEY})
-        results = response.json()["results"]
-        top_movies = sorted(results, key=lambda x: x["popularity"], reverse=True)[:10]
-        fromimdb_ids = [movie["id"] for movie in top_movies]
+        if len(for_imdb)>0:
+            from_imdb_recomendations = []
+            for tmdb_id in for_imdb:
+                response = requests.get(f"{TMDB_API_ENDPOINT}/movie/{tmdb_id}/recommendations",
+                                        params={"api_key": TMDB_API_KEY})
+                if response.status_code == 200:
+                    results = response.json().get("results", [])
+                    for result in results:
+                        if result["id"] not in records1 and result not in from_imdb_recomendations and result not in for_imdb:
+                            from_imdb_recomendations.append(result)
+                            print(result)
+            from_imdb_recomendations = sorted(from_imdb_recomendations, key=lambda r: r["vote_average"], reverse=True)[:to_collect_from_tmdb]
+            fromimdb_ids = [i["id"] for i in from_imdb_recomendations]
+        if len(for_imdb)==0 or len(fromimdb_ids)+len(records1)!=10:
+            n = 0
+            if len(for_imdb)==0:
+                n = 10 - len(records1)
+            
+            if len(fromimdb_ids)+len(records1)!=10:
+                n = 10 - (len(fromimdb_ids)+len(records1))
+            
+            params = {
+                "api_key": TMDB_API_KEY,
+                "language": "en-US",
+                "page": 1
+            }
+            new_url = f"{TMDB_API_ENDPOINT}/movie/popular"
+            response = requests.get(new_url, params=params)
+            results = response.json()["results"]
+            top_movies = sorted(results, key=lambda x: x["popularity"], reverse=True)[:n]
+            # return [movie["id"] for movie in top_movies]
+            fromimdb_ids = [movie["id"] for movie in top_movies]
 
-    return {'recommendations films : ' : records1 + fromimdb_ids}
+        return {'recommendations films ' : records1 + fromimdb_ids}
+    except requests.exceptions.JSONDecodeError:
+        return {f'No such user in db': None}
 
 
-
-@app.post("/interactions/")
+@app.post("/interactions")
 async def add_interaction(request: Request):
     data = await request.json()
     user_id = data.get('user_id')

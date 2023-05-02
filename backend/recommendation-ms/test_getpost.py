@@ -16,7 +16,7 @@ import random
 # Genre names for movie My Neighbor Totoro with id 8392: Fantasy, Animation, Family
 
 
-url = "http://localhost:8080/interactions/"
+url = "http://0.0.0.0:80/interactions"
 
 # movies_id = [603, 44826, 3042, 49638, 87101, 502781, 157336, 8392]
 action_lst = ["liked", "rated", "watched"]
