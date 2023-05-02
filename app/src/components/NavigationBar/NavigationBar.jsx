@@ -1,4 +1,4 @@
-import { Navbar, Text, Avatar, Dropdown, Input, Container } from '@nextui-org/react';
+import { Navbar, Text, Avatar, Dropdown, Input } from '@nextui-org/react';
 
 export default function NavigationBar() {
   return (
