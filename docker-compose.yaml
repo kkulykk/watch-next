@@ -11,9 +11,14 @@ services:
       context: ./backend/movie-search-ms/
       dockerfile: ../../fastapi.dockerfile
   recommendation-ms:
-    build:
-      context: ./backend/recommendation-ms/
-      dockerfile: ../../fastapi.dockerfile
+    build: ./backend/recommendation-ms/
+    ports:
+     - '3361:3361'
+    expose:
+     - '3361'
+  recommendation-db:
+    image: neo4j:latest
+
   user-ms:
     build:
       context: ./backend/user-ms/
