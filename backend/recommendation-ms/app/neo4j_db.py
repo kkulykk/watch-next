@@ -19,7 +19,7 @@ def recs_based_onother_users(session, user_id):
         """
         try:
             result = session.run(query, user_id=user_id)
-            records1 = [record["m.movie_id"] for record in result]
+            lst = list(result)
         except neo4j.exceptions.ClientError:
             return {f'Not valid UID ' : user_id}
 
