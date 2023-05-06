@@ -21,7 +21,7 @@ def recs_based_onother_users(session, user_id):
             result = session.run(query, user_id=user_id)
             lst = list(result)
         except neo4j.exceptions.ClientError:
-            return {f'UID SOMETHING ERROR, uid ' : user_id}
+            return {f'Not valid UID ' : user_id}
 
 
         for record in lst:

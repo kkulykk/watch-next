@@ -15,21 +15,22 @@ TMDB_API_ENDPOINT = "https://api.themoviedb.org/3"
 TMDB_API_KEY = "9be9f81b03a97c8ad1b8a4a41fb190bd"
 
 @app.get("/recommendations/{user_id}")
-async def get_recommendations(user_id: int):
+async def get_recommendations(user_id: int, num_recomendations: int = 10):
     try:
         try:
             records1 = neo4j_db.recs_based_onother_users(driver.session(), user_id)
         except neo4j.exceptions.ClientError:
-            return {f'UID SOMETHING ERROR, uid ' : user_id}
+            # I have no idea where this error comes from ... 
+            return {f'Not valid UID ' : user_id}
 
-        to_collect_from_tmdb = 10-len(records1)
+        to_collect_from_tmdb = num_recomendations-len(records1)
 
         for_imdb = neo4j_db.recs_based_onuser_watchs(driver.session(), user_id)
         
         
-        fromimdb_ids = services.tmdb_recs_us1(for_imdb, user_id, for_imdb, records1, TMDB_API_KEY, TMDB_API_ENDPOINT)
+        fromimdb_ids = services.tmdb_recs_us1(for_imdb, user_id, for_imdb, records1, TMDB_API_KEY, TMDB_API_ENDPOINT, num_recomendations)
         
-        services.tmdb_recs_popular(TMDB_API_KEY, TMDB_API_ENDPOINT, for_imdb, records1, fromimdb_ids)
+        services.tmdb_recs_popular(TMDB_API_KEY, TMDB_API_ENDPOINT, for_imdb, records1, fromimdb_ids, num_recomendations)
 
         return {'recommendations films ' : f'{records1 + fromimdb_ids}'}
 

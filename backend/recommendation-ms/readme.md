@@ -21,9 +21,14 @@ movies_id = [603, 44826, 3042, 49638, 87101, 502781, 157336, 8392]
 
 * Get Example:
 ```
-curl http://0.0.0.0:80/recommendations/1
+curl http://0.0.0.0:80/recommendations/1 
 ```
 (last number is used-id, which should be the same in each db)
+
+```
+curl http://0.0.0.0:80/recommendations/1\?num_recomendations\=25
+```
+default number of num_recomendations is 10, this request option shows how to set it to different numbers.
 
 ## Visualizing 
 

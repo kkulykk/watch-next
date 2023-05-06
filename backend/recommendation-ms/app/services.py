@@ -4,9 +4,9 @@ from neo4j import GraphDatabase
 import requests
 from fastapi import FastAPI, Header, Response, Request
 
-def tmdb_recs_us1(user_movies, uid, for_imdb, records1,  tmdb_key, tmdb_endpoint):
+def tmdb_recs_us1(user_movies, uid, for_imdb, records1,  tmdb_key, tmdb_endpoint, num_recomendations):
     fromimdb_ids = []
-    to_collect_from_tmdb = 10 - len(records1)
+    to_collect_from_tmdb = num_recomendations - len(records1)
     if len(for_imdb)>0:
         from_imdb_recomendations = []
         for tmdb_id in for_imdb:
@@ -21,14 +21,14 @@ def tmdb_recs_us1(user_movies, uid, for_imdb, records1,  tmdb_key, tmdb_endpoint
         fromimdb_ids = [i["id"] for i in from_imdb_recomendations]
     return fromimdb_ids
 
-def tmdb_recs_popular(tmdb_key, tmdb_endpoint, for_imdb, records1, fromimdb_ids):
-    if len(for_imdb)==0 or len(fromimdb_ids)+len(records1)!=10:
+def tmdb_recs_popular(tmdb_key, tmdb_endpoint, for_imdb, records1, fromimdb_ids, num_recomendations):
+    if len(for_imdb)==0 or len(fromimdb_ids)+len(records1)!=num_recomendations:
         n = 0
         if len(for_imdb)==0:
-            n = 10 - len(records1)
+            n = num_recomendations - len(records1)
         
-        if len(fromimdb_ids)+len(records1)!=10:
-            n = 10 - (len(fromimdb_ids)+len(records1))
+        if len(fromimdb_ids)+len(records1)!=num_recomendations:
+            n = num_recomendations - (len(fromimdb_ids)+len(records1))
         
         params = {
             "api_key": tmdb_key,
