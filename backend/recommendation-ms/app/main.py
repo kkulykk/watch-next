@@ -28,11 +28,12 @@ async def get_recommendations(user_id: int, num_recomendations: int = 10):
         for_imdb = neo4j_db.recs_based_onuser_watchs(driver.session(), user_id)
         
         
-        fromimdb_ids = services.tmdb_recs_us1(for_imdb, user_id, for_imdb, records1, TMDB_API_KEY, TMDB_API_ENDPOINT, num_recomendations)
+        fromimdb_ids = services.tmdb_recs_us1(user_id, for_imdb, records1, TMDB_API_KEY, TMDB_API_ENDPOINT, num_recomendations)
         
-        services.tmdb_recs_popular(TMDB_API_KEY, TMDB_API_ENDPOINT, for_imdb, records1, fromimdb_ids, num_recomendations)
-
-        return {'recommendations films ' : f'{records1 + fromimdb_ids}'}
+        lst = services.tmdb_recs_popular(TMDB_API_KEY, TMDB_API_ENDPOINT)
+        
+        result_list = records1[:num_recomendations//2] + fromimdb_ids + lst
+        return {'recommendations films ' : f'{result_list[:num_recomendations]}'}
 
     except requests.exceptions.JSONDecodeError:
         return {f'No such user in db': None}

@@ -19,7 +19,7 @@ def recs_based_onother_users(session, user_id):
         """
         try:
             result = session.run(query, user_id=user_id)
-            lst = list(result)
+            records1 = [record["m.movie_id"] for record in result]
         except neo4j.exceptions.ClientError:
             return {f'Not valid UID ' : user_id}
 
@@ -36,13 +36,14 @@ def recs_based_onuser_watchs(session, user_id):
     with session:
         query = """
         MATCH (u:User {user_id: $user_id})-[:LIKES|RATES|WATCHLIST]->(m:Movie)
-        WHERE m.rating IS NOT NULL
-        RETURN m.movie_id, m.genre, m.rating
-        ORDER BY m.rating DESC
+        WITH DISTINCT m
+        RETURN m.movie_id, m.genre, m.rating,
+            CASE WHEN m.rating IS NULL THEN 1 ELSE 0 END AS null_rating
+        ORDER BY null_rating, m.rating DESC
         LIMIT 10
         """
         result = session.run(query, user_id=user_id)
-        for_imdb = list(result)
+        for_imdb = [record["m.movie_id"] for record in result]
     return for_imdb
 
 
