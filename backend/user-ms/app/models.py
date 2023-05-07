@@ -31,4 +31,17 @@ class Connection(database.Base):
     def __str__(self):
         return f"Connection<{self.u1},{self.u2}>"
 
+class FriendRequest(database.Base):
+    __tablename__ = "frequest"
+    id = Column(Integer, primary_key=True, index=True)
+    frm = orm.mapped_column(ForeignKey("user.id"))
+    to = orm.mapped_column(ForeignKey("user.id"))
+
+    def __init__(self, frm, to):
+        self.frm = frm
+        self.to = to
+    
+    def __str__(self):
+        return f"Request<from: {self.frm}, to: {self.to}>"
+
 database.Base.metadata.create_all(bind=database.engine)

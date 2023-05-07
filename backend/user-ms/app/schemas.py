@@ -13,3 +13,6 @@ class User(BaseModel):
     hashed_password: str
     class Config:
         orm_mode = True
+
+class Token(BaseModel):
+    token: str

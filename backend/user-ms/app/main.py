@@ -9,6 +9,7 @@ from typing import Annotated
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi import Depends, FastAPI, HTTPException, status, Form
 from fastapi.responses import ORJSONResponse, PlainTextResponse
+from fastapi_jwt_auth import AuthJWT
 
 from pydantic.dataclasses import dataclass
 
@@ -82,6 +83,7 @@ async def delete_user(
 @app.post("/login")
 async def login(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    Authorize: AuthJWT = fastapi.Depends(),
     db: orm.Session = Depends(services.get_db),
 ):
     """
@@ -91,24 +93,28 @@ async def login(
     return await services.create_token(user)
 
 
-@app.post("/friends/{token}")
+@app.post("/friends/{username}")
 async def get_friends(
-    token: str,# = Depends(services.oauth2schema),
+    username: str,
+    token: schemas.Token,
     db: orm.Session = Depends(services.get_db),
 ):
     """
     get all my friends
     """
-    user = services.decode_token(token, db)
+    user = await services.decode_and_validate_token(token.token, db)
     if not user:
-        raise fastapi.HTTPException(status_code=401, detail="no such user")
+        raise fastapi.HTTPException(status_code=400, detail="could not find user")
+    if user.username != username:
+        raise fastapi.HTTPException(status_code=401, detail="invalid username")
     return await services.get_friends_by_uid(user.id, db)
 
 
-@app.post("/friend/{token}/{friend}")
-async def friend(
-    token: str,
+@app.post("/frequest/{username}/{friend}")
+async def request(
+    username: str,
     friend: str,
+    token: schemas.Token,
     db: orm.Session = Depends(services.get_db),
 ):
     """
@@ -118,78 +124,77 @@ async def friend(
     shows user all his requests
     if he accepts - connection is created when db is updated
     """
-    user = services.decode_token(token, db)
+    user = await services.decode_and_validate_token(token.token, db)
     if not user:
-        raise fastapi.HTTPException(status_code=401, detail="no such user")
+        raise fastapi.HTTPException(status_code=400, detail="could not find user")
+    if user.username != username:
+        raise fastapi.HTTPException(status_code=401, detail="invalid username")
+    
     friend = await services.get_user_by_username(friend, db)
+    if not friend:
+        raise fastapi.HTTPException(status_code=400, detail="could not find friend")
+    return await services.add_request(user.id, friend.id, db)
+
+
+@app.post("/friend/{username}/{friend}")
+async def friend(
+    username: str,
+    friend: str,
+    token: schemas.Token,
+    db: orm.Session = Depends(services.get_db),
+):
+    """
+    become friend of a person with username
+    by acepting their request
+    !!! Later will add friend requests
+    a table that stores all requests
+    shows user all his requests
+    if he accepts - connection is created when db is updated
+    """
+    user = await services.decode_and_validate_token(token.token, db)
+    if not user:
+        raise fastapi.HTTPException(status_code=400, detail="could not find user")
+    if user.username != username:
+        raise fastapi.HTTPException(status_code=401, detail="invalid username")
+    
+    friend = await services.get_user_by_username(friend, db)
+    if not friend:
+        raise fastapi.HTTPException(status_code=400, detail="Could not find friend")
     return await services.create_connection(user.id, friend.id, db)
 
 
-@app.post("/unfriend/{token}/{friend}")
+@app.post("/unfriend/{username}/{friend}")
 async def unfriend(
-    token: str,
+    username: str,
     friend: str,
+    token: schemas.Token,
     db: orm.Session = Depends(services.get_db),
 ):
     """
     unfriend friend by username
     """
-    user = services.decode_token(token, db)
+    user = await services.decode_and_validate_token(token.token, db)
     if not user:
-        raise fastapi.HTTPException(status_code=401, detail=f"{user.username} no such user")
+        raise fastapi.HTTPException(status_code=400, detail="could not find user")
+    if user.username != username:
+        raise fastapi.HTTPException(status_code=401, detail="invalid username")
     friend = await services.get_user_by_username(friend, db)
     if not friend:
         raise fastapi.HTTPException(status_code=401, detail=f"{friend.username} no such user")
     return await services.remove_connection(user.id, friend.id, db)
 
 
-"""
-async def get_current_user(
-    db: orm.Session = fastapi.Depends(services.get_db),
-    token: str = fastapi.Depends(oauth2_scheme),
-):
-    return services.get_current_user(db, token)
-
-async def get_current_active_user(
-    current_user: Annotated[schemas.User, Depends(get_current_user)]
-):
-    if current_user.disabled:
-        raise HTTPException(status_code=400, detail="Inactive user")
-    return current_user
-"""
-
-
-"""
-@app.post("/token")
-async def generate_token(
-    user: schemas.UserLogin,
+@app.post("/myrequests/{username}")
+async def requests(
+    username: str,
+    token: schemas.Token,
     db: orm.Session = Depends(services.get_db),
 ):
-    user = await services.login(user.username, user.password, db)
+    user = await services.decode_and_validate_token(token.token, db)
     if not user:
-        raise fastapi.HTTPException(status_code=401, detail="Invalid Credentials")
-    return await services.create_token(user)
+        raise fastapi.HTTPException(status_code=400, detail="could not find user")
+    if user.username != username:
+        raise fastapi.HTTPException(status_code=401, detail="invalid username")
+    return await services.get_requests_to_user(uid)
 
-
-@app.get("/cu")
-async def get_current_user(
-    db: orm.Session = Depends(services.get_db),
-    token: str = Depends(services.oauth2schema),
-):
-    try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-        user = db.query(models.User).get(payload["id"])
-    except:
-        raise fastapi.HTTPException(
-            status_code=401, detail="Invalid Email or Password"
-        )
-
-    return schemas.User.from_orm(user)
-
-@app.get("/users/me")
-async def read_users_me(
-    current_user: schemas.User = Depends(get_current_user)
-):
-    return current_user
-"""
 

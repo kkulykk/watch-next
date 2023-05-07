@@ -8,4 +8,5 @@ sqlalchemy-utils
 pymysql
 python-multipart[cryptography]
 orjson
+fastapi-jwt-auth
 uvicorn[standard]
