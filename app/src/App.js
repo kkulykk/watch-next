@@ -43,6 +43,7 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/feed" element={<Feed />} />
           <Route path="/404" element={<NotFound />} />
+          <Route path="/" element={<Navigate to="/feed" replace />} />
           <Route path="*" element={<Navigate to="/404" replace />} />
         </Routes>
       </Router>
