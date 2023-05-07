@@ -1,35 +1,53 @@
-version: "2"
 services:
   # <<-- FRONTEND -->>
-  #app:
-  #  build: ./app
-  #  ports:
-  #    - 3000:3000
+  app:
+    build: ./app
+    ports:
+      - 3000:3000
 
   # <<-- BACKEND -->>
+  movie-search-ms:
+    build:
+      context: ./backend/movie-search-ms/
+      dockerfile: ../../fastapi.dockerfile
+  recommendation-ms:
+    build:
+      context: ./backend/recommendation-ms/
+      dockerfile: ../../fastapi.dockerfile
   user-ms:
-    build: ./backend/user-ms/
-    ports:
-     - '3360:3360'
-    expose:
-     - '3360'
-    depends_on:
-      user-db:
-        condition: service_healthy
-    links:
-     - user-db
-  
+    build:
+      context: ./backend/user-ms/
+      dockerfile: ../../fastapi.dockerfile
+
   user-db:
     image: mysql:latest
-    ports:
-      - '3306:3306'
-    expose:
-      - '3306'
-    environment:
-      MYSQL_ROOT_PASSWORD: 1111
-      MYSQL_HOST: "used-db"
+
+  watchlist-ms:
+    build:
+      context: ./backend/watchlist-ms/
+      dockerfile: ../../fastapi.dockerfile
+  watchlist-db:
+    image: cassandra:latest
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-P", "3306"]
-      interval: 10s
-      timeout: 30s
+      test: ["CMD-SHELL", "[ $$(nodetool statusgossip) = running ]"]
+      interval: 30s
+      timeout: 10s
       retries: 5
+  watchlist-db-setuper:
+    image: cassandra:latest
+    depends_on:
+      watchlist-db:
+        condition:
+          service_healthy
+    restart: "no"
+    entrypoint: ["/setup_watchlist-db.sh"]
+    volumes:
+      - ./scripts/create_tables.cql:/create_tables.cql
+      - ./scripts/setup_watchlist-db.sh:/setup_watchlist-db.sh
+
+  analytics-ms:
+    build:
+      context: ./backend/analytics-ms/
+      dockerfile: ../../fastapi.dockerfile
+  analytics-db:
+    image: neo4j:latest
