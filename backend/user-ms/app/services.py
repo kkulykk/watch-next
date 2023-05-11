@@ -64,12 +64,12 @@ async def create_connection(name1: str, name2: str, db: orm.Session):
     user1 = await get_user_by_username(name1, db)
     if not user1:
         raise fastapi.HTTPException(
-                        status_code=400,
+                        status_code=404,
                         detail=f"can't connect: user {name1} does not exist")
     user2 = await get_user_by_username(name2, db)
     if not user2:
         raise fastapi.HTTPException(
-                        status_code=400,
+                        status_code=404,
                         detail=f"can't connect: user {name2} does not exist")
     uid1 = user1.id
     uid2 = user2.id
@@ -119,7 +119,7 @@ async def add_request(frm: int, to: int, db: orm.Session):
     u2 = await get_user_by_uid(to, db)
     if not u1 or not u2:
         return fastapi.HTTPException(
-                        status_code=400,
+                        status_code=404,
                         detail="users don't exist")
     request = models.FriendRequest(frm, to)
     db.add(request)
@@ -128,10 +128,10 @@ async def add_request(frm: int, to: int, db: orm.Session):
 
 
 async def accept_request(frm: int, to: int, db: orm.Session):
-    request = db.query(models.FriendRequest).filter(models.FriendRequest.frm == frm).filter(models.FriendRequest.to == to)
+    request = await db.query(models.FriendRequest).filter(models.FriendRequest.frm == frm).filter(models.FriendRequest.to == to).first()
     if not request:
         raise fastapi.HTTPException(
-                        status_code=400,
+                        status_code=404,
                         detail="request does not exist")
     create_connection(frm, to, db)
     db.delete(request)
@@ -168,7 +168,7 @@ async def delete_account(email: str, username: str, password: str, db: orm.Sessi
     user = await get_user_by_email(email, db)
     if not user:
         raise fastapi.HTTPException(
-                        status_code=400,
+                        status_code=404,
                         detail="no user with this email")
     if not user.verify_password(password):
         raise fastapi.HTTPException(
@@ -225,7 +225,7 @@ async def decode_and_validate_token(token: str, db: orm.Session):
     user = await get_user_by_uid(int(payload["id"]), db)
     if not user:
         raise fastapi.HTTPException(
-            status_code=400, detail="No such user"
+            status_code=404, detail="No such user"
         )
     return user
 

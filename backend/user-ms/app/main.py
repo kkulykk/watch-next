@@ -77,7 +77,7 @@ async def connections(
     """
     user = services.get_user_by_username(username)
     if not user:
-        raise fastapi.HTTPException(status_code=400, detail="could not find user")
+        raise fastapi.HTTPException(status_code=404, detail="could not find user")
     connections = await services.get_friends_by_uid(user.id, db)
     connections = {f"{i}": str(u) for i,u in enumerate(connections)}
     return PlainTextResponse(json.dumps(connections,indent=2))
@@ -132,7 +132,7 @@ async def get_friends(
     """
     user = await services.decode_and_validate_token(token.token, db)
     if not user:
-        raise fastapi.HTTPException(status_code=400, detail="could not find user")
+        raise fastapi.HTTPException(status_code=404, detail="could not find user")
     if user.username != username:
         raise fastapi.HTTPException(status_code=401, detail="invalid username")
     return await services.get_friends_by_uid(user.id, db)
@@ -154,13 +154,13 @@ async def request(
     """
     user = await services.decode_and_validate_token(token.token, db)
     if not user:
-        raise fastapi.HTTPException(status_code=400, detail="could not find user")
+        raise fastapi.HTTPException(status_code=404, detail="could not find user")
     if user.username != username:
         raise fastapi.HTTPException(status_code=401, detail="invalid username")
     
     friend = await services.get_user_by_username(friend, db)
     if not friend:
-        raise fastapi.HTTPException(status_code=400, detail="could not find friend")
+        raise fastapi.HTTPException(status_code=404, detail="could not find friend")
     return await services.add_request(user.id, friend.id, db)
 
 
@@ -181,9 +181,9 @@ async def accept(
     """
     user = await services.decode_and_validate_token(token.token, db)
     if not user:
-        raise fastapi.HTTPException(status_code=400, detail="could not find user")
+        raise fastapi.HTTPException(status_code=404, detail="could not find user")
     if user.username != username:
-        raise fastapi.HTTPException(status_code=400, detail="invalid username")
+        raise fastapi.HTTPException(status_code=401, detail="invalid username")
     return await services.create_connection(username, friend, db)
 
 
@@ -199,12 +199,12 @@ async def unfriend(
     """
     user = await services.decode_and_validate_token(token.token, db)
     if not user:
-        raise fastapi.HTTPException(status_code=400, detail="could not find user")
+        raise fastapi.HTTPException(status_code=404, detail="could not find user")
     if user.username != username:
         raise fastapi.HTTPException(status_code=401, detail="invalid username")
     friend = await services.get_user_by_username(friend, db)
     if not friend:
-        raise fastapi.HTTPException(status_code=401, detail=f"{friend.username} no such user")
+        raise fastapi.HTTPException(status_code=404, detail=f"{friend.username} no such user")
     return await services.remove_connection(user.id, friend.id, db)
 
 
@@ -216,7 +216,7 @@ async def requests(
 ):
     user = await services.decode_and_validate_token(token.token, db)
     if not user:
-        raise fastapi.HTTPException(status_code=400, detail="could not find user")
+        raise fastapi.HTTPException(status_code=404, detail="could not find user")
     if user.username != username:
         raise fastapi.HTTPException(status_code=401, detail="invalid username")
     return await services.get_requests_to_user(uid)
