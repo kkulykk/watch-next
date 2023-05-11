@@ -30,7 +30,7 @@ async def hello(name: str):
     return f"Hello {name}! My name is user service!"
 
 
-@app.get("/allusers", response_class=PlainTextResponse)
+@app.get("/users", response_class=PlainTextResponse)
 async def users(
     db: orm.Session = fastapi.Depends(services.get_db)
 ):
@@ -42,6 +42,19 @@ async def users(
     return PlainTextResponse(json.dumps(users,indent=2))
 
 
+@app.get("/users/{username}", response_class=PlainTextResponse)
+async def users(
+    username: str,
+    db: orm.Session = fastapi.Depends(services.get_db)
+):
+    """
+    for developers: see all users in db
+    """
+    user = await services.get_user_by_username(db)
+    user = vars(user)
+    return PlainTextResponse(json.dumps(user,indent=2))
+
+
 @app.get("/connections", response_class=PlainTextResponse)
 async def connections(
     db: orm.Session = fastapi.Depends(services.get_db)
@@ -50,6 +63,22 @@ async def connections(
     for developers: see all connections in db
     """
     connections = await services.get_friends(db)
+    connections = {f"{i}": str(u) for i,u in enumerate(connections)}
+    return PlainTextResponse(json.dumps(connections,indent=2))
+
+
+@app.get("/connections/{username}", response_class=PlainTextResponse)
+async def connections(
+    username: str,
+    db: orm.Session = fastapi.Depends(services.get_db)
+):
+    """
+    for developers: see all connections in db
+    """
+    user = services.get_user_by_username(username)
+    if not user:
+        raise fastapi.HTTPException(status_code=400, detail="could not find user")
+    connections = await services.get_friends_by_uid(user.id, db)
     connections = {f"{i}": str(u) for i,u in enumerate(connections)}
     return PlainTextResponse(json.dumps(connections,indent=2))
 
@@ -83,7 +112,6 @@ async def delete_user(
 @app.post("/login")
 async def login(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-    Authorize: AuthJWT = fastapi.Depends(),
     db: orm.Session = Depends(services.get_db),
 ):
     """
@@ -110,7 +138,7 @@ async def get_friends(
     return await services.get_friends_by_uid(user.id, db)
 
 
-@app.post("/frequest/{username}/{friend}")
+@app.post("/request/{username}/")
 async def request(
     username: str,
     friend: str,
@@ -136,8 +164,8 @@ async def request(
     return await services.add_request(user.id, friend.id, db)
 
 
-@app.post("/friend/{username}/{friend}")
-async def friend(
+@app.post("/accept/{username}/")
+async def accept(
     username: str,
     friend: str,
     token: schemas.Token,
@@ -155,15 +183,11 @@ async def friend(
     if not user:
         raise fastapi.HTTPException(status_code=400, detail="could not find user")
     if user.username != username:
-        raise fastapi.HTTPException(status_code=401, detail="invalid username")
-    
-    friend = await services.get_user_by_username(friend, db)
-    if not friend:
-        raise fastapi.HTTPException(status_code=400, detail="Could not find friend")
-    return await services.create_connection(user.id, friend.id, db)
+        raise fastapi.HTTPException(status_code=400, detail="invalid username")
+    return await services.create_connection(username, friend, db)
 
 
-@app.post("/unfriend/{username}/{friend}")
+@app.post("/unfriend/{username}/")
 async def unfriend(
     username: str,
     friend: str,
@@ -184,7 +208,7 @@ async def unfriend(
     return await services.remove_connection(user.id, friend.id, db)
 
 
-@app.post("/myrequests/{username}")
+@app.post("/requests/{username}/")
 async def requests(
     username: str,
     token: schemas.Token,

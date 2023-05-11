@@ -57,22 +57,24 @@ async def get_requests_to_user(to: int, db: orm.Session):
     return db.query(models.FriendRequest).filter(models.FriendRequest.to == to).all()
 
 
-async def create_connection(user1: str, user2: str, db: orm.Session):
+async def create_connection(name1: str, name2: str, db: orm.Session):
     """
     create connection between users with id=uid1 and id=uid2
     """
-    user1 = await get_user_by_username(user1, db)
+    user1 = await get_user_by_username(name1, db)
     if not user1:
         raise fastapi.HTTPException(
-                        status_code=401,
-                        detail=f"can't connect: user with id={uid1} does not exist")
-    user2 = await get_user_by_username(user2, db)
+                        status_code=400,
+                        detail=f"can't connect: user {name1} does not exist")
+    user2 = await get_user_by_username(name2, db)
     if not user2:
         raise fastapi.HTTPException(
-                        status_code=401,
-                        detail=f"can't connect: user with id={uid2} does not exist")
-    if db.query(models.Connection).filter(models.Connection.u1 == uid1).filter(models.Connection.u2 == uid2).all()+\
-       db.query(models.Connection).filter(models.Connection.u2 == uid1).filter(models.Connection.u2 == uid1).all():
+                        status_code=400,
+                        detail=f"can't connect: user {name2} does not exist")
+    uid1 = user1.id
+    uid2 = user2.id
+    if db.query(models.Connection).filter(models.Connection.u1 == uid1).filter(models.Connection.u2 == uid2).all() or\
+       db.query(models.Connection).filter(models.Connection.u2 == uid1).filter(models.Connection.u1 == uid1).all():
         raise fastapi.HTTPException(
                         status_code=400,
                         detail=f"can't connect: connection already exists")
@@ -145,7 +147,7 @@ async def create_user(email: str, username: str, password: str, db: orm.Session)
     user = await get_user_by_email(email, db)
     if user:
         raise fastapi.HTTPException(
-                            status_code=401,
+                            status_code=400,
                             detail="email already in use")
     user_obj = models.User(
         username = username,
