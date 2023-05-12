@@ -1,51 +1,50 @@
-services:
-  # <<-- NGINX -->>
-  nginx:
-    depends_on:
-      - app
-      - movie-search-ms
-      - recommendation-ms
-      - user-ms
-      - watchlist-ms
-      - analytics-ms
-    restart: always
-    build:
-      context: ./nginx
-      dockerfile: Dockerfile
-    ports:
-      - 3000:3000
+# This docker compose file is for convenient front-end development
+# Workflow:
+# $ docker compose -f docker-compose-fe.yaml up -d --build
+# $ docker compose down
+# The app will be available at http://localhost:3000/
 
+services:
   # <<-- FRONTEND -->>
   app:
-    build:
-      context: ./app
-      dockerfile: Dockerfile
+    image: node:16-alpine
     env_file:
       ./app/.env
     environment:
-      - REACT_APP_MOVIE_SEARCH_MS=/movie-search-ms
-      - REACT_APP_RECOMMENDATION_MS=/recommendation-ms
-      - REACT_APP_USER_MS=/user-ms
-      - REACT_APP_WATCHLIST_MS=/watchlist-ms
-      - REACT_APP_ANALYTICS_MS=/analytics-ms
+      - REACT_APP_MOVIE_SEARCH_MS=http://localhost:50172
+      - REACT_APP_RECOMMENDATION_MS=http://localhost:50173
+      - REACT_APP_USER_MS=http://localhost:50174
+      - REACT_APP_WATCHLIST_MS=http://localhost:50175
+      - REACT_APP_ANALYTICS_MS=http://localhost:50176
+    command: >
+      sh -c "cd /app && yarn install && yarn cache clean && yarn serve"
+    volumes:
+      - ./app:/app
+    expose:
+      - "3000"
+    ports:
+      - 3000:3000
 
   # <<-- BACKEND -->>
   movie-search-ms:
     build:
       context: ./backend/movie-search-ms/
       dockerfile: ../../fastapi.dockerfile
-
+    ports:
+      - 50172:80
   recommendation-ms:
     build:
       context: ./backend/recommendation-ms/
       dockerfile: ../../fastapi.dockerfile
-  recommendation-db:
-    image: neo4j:latest
-
+    ports:
+      - 50173:80
   user-ms:
     build:
       context: ./backend/user-ms/
       dockerfile: ../../fastapi.dockerfile
+    ports:
+      - 50174:80
+
   user-db:
     image: mysql:latest
 
@@ -53,6 +52,8 @@ services:
     build:
       context: ./backend/watchlist-ms/
       dockerfile: ../../fastapi.dockerfile
+    ports:
+      - 50175:80
   watchlist-db:
     image: cassandra:latest
     healthcheck:
@@ -76,8 +77,7 @@ services:
     build:
       context: ./backend/analytics-ms/
       dockerfile: ../../fastapi.dockerfile
-  analytics-db:
-    image: mongo:latest
-    restart: always
     ports:
-      - 27017:27017
+      - 50176:80
+  analytics-db:
+    image: neo4j:latest
