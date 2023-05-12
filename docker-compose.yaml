@@ -1,33 +1,9 @@
 services:
-  # <<-- NGINX -->>
-  nginx:
-    depends_on:
-      - app
-      - movie-search-ms
-      - recommendation-ms
-      - user-ms
-      - watchlist-ms
-      - analytics-ms
-    restart: always
-    build:
-      context: ./nginx
-      dockerfile: Dockerfile
-    ports:
-      - 3000:3000
-
   # <<-- FRONTEND -->>
   app:
-    build:
-      context: ./app
-      dockerfile: Dockerfile
-    env_file:
-      ./app/.env
-    environment:
-      - REACT_APP_MOVIE_SEARCH_MS=/movie-search-ms
-      - REACT_APP_RECOMMENDATION_MS=/recommendation-ms
-      - REACT_APP_USER_MS=/user-ms
-      - REACT_APP_WATCHLIST_MS=/watchlist-ms
-      - REACT_APP_ANALYTICS_MS=/analytics-ms
+    build: ./app
+    ports:
+      - 3000:3000
 
   # <<-- BACKEND -->>
   movie-search-ms:
@@ -55,22 +31,6 @@ services:
       dockerfile: ../../fastapi.dockerfile
   watchlist-db:
     image: cassandra:latest
-    healthcheck:
-      test: ["CMD-SHELL", "[ $$(nodetool statusgossip) = running ]"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-  watchlist-db-setuper:
-    image: cassandra:latest
-    depends_on:
-      watchlist-db:
-        condition:
-          service_healthy
-    restart: "no"
-    entrypoint: ["/setup_watchlist-db.sh"]
-    volumes:
-      - ./scripts/create_tables.cql:/create_tables.cql
-      - ./scripts/setup_watchlist-db.sh:/setup_watchlist-db.sh
 
   analytics-ms:
     build:
