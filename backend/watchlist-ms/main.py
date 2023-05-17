@@ -3,6 +3,7 @@ from fastapi import (
     status
     )
 from fastapi.responses import Response
+from fastapi.middleware.cors import CORSMiddleware
 
 from typing import List
 
@@ -29,6 +30,18 @@ tags_metadata = [
 ]
 
 app = FastAPI(description=description, openapi_tags=tags_metadata)
+
+origins = [
+    "*"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # GET   "/users/{uid}/watchlists"   
 @app.get("/users/{uid}/watchlists", tags=['watchlists'])
