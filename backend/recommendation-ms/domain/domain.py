@@ -1,9 +1,12 @@
-# from pydantic import BaseModel
-# from pydantic.dataclasses import dataclass
-# from fastapi import Form
 
-# @dataclass
-# class Recommendation:
-#     neo4j_recoms: list
-#     tmdb_recoms: list 
+from neo4j import GraphDatabase
+
+
+class DriverN4j:
+    def __init__(self, port, auth_user="neo4j", auth_password="mypassword"):
+        self.neo4j_url = f"bolt://neo4j:{port}"
+        self.driver = GraphDatabase.driver(self.neo4j_url, auth=(f"{auth_user}", f"{auth_password}"))
+
+# TMDB_API_ENDPOINT = "https://api.themoviedb.org/3"
+# TMDB_API_KEY = "9be9f81b03a97c8ad1b8a4a41fb190bd"
 

@@ -1,14 +1,15 @@
 
 # from domain.domain import Recommendation
-from repository.database import DriverN4j, TMDB_API_ENDPOINT, TMDB_API_KEY
+from domain.domain import DriverN4j
 import httpx
 import neo4j 
 import requests
 from fastapi import FastAPI, Header, Response, Request
+import os
 
 
 class RepositorySingleton:
-    def __init__(self, user_id, driver, tmdb_api_endpoint=TMDB_API_ENDPOINT, tmdb_api_key=TMDB_API_KEY):
+    def __init__(self, user_id, driver, tmdb_api_endpoint=os.environ.get("TMDB_API_ENDPOINT"), tmdb_api_key=os.environ.get("TMDB_API_KEY")):
 
         self.user_id = user_id
         self.session = driver.session()

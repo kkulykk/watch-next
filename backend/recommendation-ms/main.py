@@ -4,13 +4,14 @@ import requests
 from fastapi import FastAPI, Header, Response, Request
 # from domain import domain
 from services import service
-from repository import repo, database
+from domain import domain
+# from repository import repo
 # from repository import *
 
 
 app = FastAPI()
 
-driver_init = database.DriverN4j(port=7687)
+driver_init = domain.DriverN4j(port=7687)
 driver = driver_init.driver
 
 
