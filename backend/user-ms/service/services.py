@@ -1,9 +1,10 @@
 import fastapi as fastapi
 import fastapi.security as security
-import jwt as jwt
-import datetime as dt
 import sqlalchemy.orm as orm
+
+import jwt as jwt
 import passlib.hash as hsh
+from passlib.context import CryptContext
 
 from app.repository import database
 from app.repository import models
@@ -13,12 +14,14 @@ import time
 
 from typing import Annotated
 
-from fastapi_jwt_auth import AuthJWT
+import os
 
-oauth2schema = security.OAuth2PasswordBearer(tokenUrl="/token")
+ACCESS_TOKEN_EXPIRE_SECONDS = 1800  # 30 minutes
+JWT_ALGORITHM = "HS256"
+JWT_SECRET_KEY = os.environ['JWT_SECRET_KEY']     # should be kept secret
 
-JWT_SECRET = "myjwtsecret"
-JWT_ALGORITHM = "HS512"
+password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 
 def get_db():
     db = database.SessionLocal()
@@ -152,7 +155,8 @@ async def create_user(email: str, username: str, password: str, db: orm.Session)
     user_obj = models.User(
         username = username,
         email=email,
-		hashed_password=hsh.bcrypt.hash(password)
+        hashed_password=password_context.hash(password)
+		#hashed_password=hsh.bcrypt.hash(password)
     )
     db.add(user_obj)
     db.commit()
@@ -193,7 +197,8 @@ async def login(username: str, password: str, db: orm.Session):
         raise fastapi.HTTPException(
                         status_code=401,
                         detail="can't login: no such user")
-    if not user.verify_password(password):
+    #if not user.verify_password(password):
+    if not password_context.verify(password, user.hashed_password):
         raise fastapi.HTTPException(
                         status_code=401,
                         detail="can't login: invalid password")
@@ -206,9 +211,9 @@ async def create_token(user: models.User):
     """
     payload = {
         "id": user.id,
-        "expires": time.time() + 1800 # in seconds
+        "expires": time.time() + ACCESS_TOKEN_EXPIRE_SECONDS # in seconds
     }
-    token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+    token = jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
     return dict(access_token=token, token_type="bearer")
 
 
