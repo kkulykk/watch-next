@@ -26,7 +26,8 @@ async def collect_from_tmdb(user_id, driver, records1, num_recomendations):
     fromimdb_ids = reps.tmdb_recs_us1(for_imdb=for_imdb, records1=records1, num_recomendations=to_collect_from_tmdb)
     lst = reps.tmdb_recs_popular()
         
-    result_list = records1[:num_recomendations//2] + fromimdb_ids + lst
+    # result_list = [f"records1: {records1} ; fromimdb_ids: {fromimdb_ids} ; lst = {lst}, num_recomendations = {num_recomendations}"]
+    result_list = records1+ fromimdb_ids+ lst
     return result_list
 
 
@@ -35,7 +36,11 @@ async def get_whole_recs(user_id, driver, num_recomendations):
     if records1_tuple[0]:
         records1 = records1_tuple[1]
         result_recs = await collect_from_tmdb(user_id, driver, records1, num_recomendations)
-        return (True, result_recs)
+        result_recommendations = result_recs[:num_recomendations+1]
+        reps = RepositorySingleton(user_id=user_id, driver=driver)
+        res_movie_dct = reps.movie_recommendations(result_recommendations)
+
+        return (True, res_movie_dct)
     else:
         return (False, [])
 

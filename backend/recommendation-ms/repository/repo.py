@@ -135,16 +135,21 @@ class RepositorySingleton:
         to_collect_from_tmdb = num_recomendations - len(records1)
         if len(for_imdb)>0:
             from_imdb_recomendations = []
+            from_imdb_recomendationsx_2 = []
             for tmdb_id in for_imdb:
                 response = requests.get(f"{self.tmdb_endpoint}/movie/{tmdb_id}/recommendations",
                                         params={"api_key": self.tmdb_key})
                 if response.status_code == 200:
+                    
                     results = response.json().get("results", [])
+                    ##
+                    # from_imdb_recomendationsx_2.append(f"results: {results} for id: {tmdb_id}")
+                    ##
                     for result in results:
                         if result["id"] not in records1 and result not in from_imdb_recomendations and result not in for_imdb:
                             from_imdb_recomendations.append(result)
             from_imdb_recomendations = sorted(from_imdb_recomendations, key=lambda r: r["vote_average"], reverse=True)[:to_collect_from_tmdb]
-            fromimdb_ids = [i["id"] for i in from_imdb_recomendations]
+            fromimdb_ids = [i["id"] for i in from_imdb_recomendations]  
         return fromimdb_ids
 
     def tmdb_recs_popular(self):
@@ -170,4 +175,25 @@ class RepositorySingleton:
             tmdb_movie_data = tmdb_movie_response.json()
             genres = [genre["name"] for genre in tmdb_movie_data["genres"]]
         return genres
+
+    def movie_recommendations(self, lst):
+
+        return_lst = []
+        for mid in lst:
+            url = f"https://api.themoviedb.org/3/movie/{mid}?api_key={self.tmdb_key}&language=en-US"
+
+            response = requests.get(url)
+            if response.status_code == 200:
+                data = response.json()
+                poster_path = data.get('poster_path')
+                poster_url = ""
+                if poster_path:
+                    poster_url = f"https://image.tmdb.org/t/p/original{poster_path}"
+                title_path = data.get('title')
+                title = ""
+                if title_path:
+                    title = title_path
+                
+                return_lst.append({'id': mid, 'title': title, 'img':poster_url})
+        return return_lst
 
