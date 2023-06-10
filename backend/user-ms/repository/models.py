@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey
 import sqlalchemy.orm as orm
 import passlib.hash as hsh
 
-from app import database
+from app.repository import database
 
 
 class User(database.Base):
