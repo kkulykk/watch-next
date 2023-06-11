@@ -1,0 +1,14 @@
+FROM python:3.9
+
+WORKDIR /code
+
+COPY ./requirements.txt /code/requirements.txt
+
+RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
+
+ENV ROOTPASS=1111
+ENV JWT_SECRET_KEY=1324354657687980
+
+COPY . /code/app
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "3360"]

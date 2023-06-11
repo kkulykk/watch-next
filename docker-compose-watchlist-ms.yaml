@@ -1,0 +1,28 @@
+# This file is used in pair with test_watchlist_ms.py
+
+services:
+  # <<-- BACKEND -->>
+  watchlist-ms:
+    build:
+      context: ./backend/watchlist-ms/
+      dockerfile: ../../fastapi.dockerfile
+    ports:
+      - 50001:80
+  watchlist-db:
+    image: cassandra:latest
+    healthcheck:
+      test: ["CMD-SHELL", "[ $$(nodetool statusgossip) = running ]"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+  watchlist-db-setuper:
+    image: cassandra:latest
+    depends_on:
+      watchlist-db:
+        condition:
+          service_healthy
+    restart: "no"
+    entrypoint: ["/setup_watchlist-db.sh"]
+    volumes:
+      - ./scripts/create_tables.cql:/create_tables.cql
+      - ./scripts/setup_watchlist-db.sh:/setup_watchlist-db.sh
