@@ -1,5 +1,7 @@
 # Watch Next
 
+[Documentation](https://drive.google.com/file/d/1eiwaazx7lD3NpryT07yIzt_COT05oJBj/view?usp=sharing)
+
 ## Prerequisites
 - Docker
 - Docker Compose
