@@ -4,6 +4,10 @@
 - Docker
 - Docker Compose
 
+```
+docker network create mongoCluster
+```
+
 ## Usage
 
 ### Starting the containers
