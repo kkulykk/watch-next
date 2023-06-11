@@ -64,13 +64,16 @@ services:
       dockerfile: ../../fastapi.dockerfile
   watchlist-db:
     image: cassandra:latest
-    ports:
-      - '9093:9093'
+    # ports:
+    #   - '9093:9093'
     healthcheck:
       test: ["CMD-SHELL", "[ $$(nodetool statusgossip) = running ]"]
       interval: 30s
       timeout: 10s
       retries: 5
+    environment:
+      - CASSANDRA_SEEDS=watch-next-watchlist-db-1,watch-next-watchlist-db-2
+    scale: 2
 
   watchlist-db-setuper:
     image: cassandra:latest
