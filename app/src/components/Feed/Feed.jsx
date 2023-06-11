@@ -71,7 +71,7 @@ const Feed = () => {
           Profile
         </Text>
         <Text h1 size={60} css={{ color: 'white', maxWidth: 'fit-content', margin: 0 }} weight="bold">
-          Roman Kulyk
+          john.doe
         </Text>
         <Container display="flex" css={{ gap: '25px', padding: 0 }}>
           <Text>{`${userWatchlists.length} watchlists`}</Text>

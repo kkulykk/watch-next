@@ -1,4 +1,4 @@
-CREATE KEYSPACE watchlists WITH REPLICATION = {'class': 'SimpleStrategy', 'replication_factor': 1} ;
+CREATE KEYSPACE watchlists WITH REPLICATION = {'class': 'SimpleStrategy', 'replication_factor': 2} ;
 
 USE watchlists ;
 

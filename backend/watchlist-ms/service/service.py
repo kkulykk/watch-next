@@ -1,16 +1,27 @@
 from typing import List
+from kafka import KafkaProducer
+import json
 
 from .. import repository
 from ..repository import RepositorySingleton
 from ..domain import WatchList, Movie
 
+producer = KafkaProducer(
+    bootstrap_servers=['kafka-server:9092'],
+    value_serializer=lambda x: json.dumps(x).encode('utf-8'),
+    api_version=(0, 10, 0)
+)
+
+
 class NoSuchWatchlistException(Exception):
     pass
+
 
 def list_watchlists_by_uid(uid: str) -> List[WatchList]:
     repo = RepositorySingleton()
     watchlists = repo.read_watchlists_by_uid(uid)
     return watchlists
+
 
 def create_watchlist(uid: str, watchlist_name: str):
     repo = RepositorySingleton()
@@ -28,6 +39,7 @@ def get_movies_in_watchlist(uid: str, watchlist_id: str) -> List[Movie]:
         return movies
     except repository.NoSuchWatchlistException:
         raise NoSuchWatchlistException
+
 
 def add_movie_to_watchlist(uid: str, watchlist_id: str, movie_id: str):
     repo = RepositorySingleton()

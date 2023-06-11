@@ -89,12 +89,40 @@ services:
     build:
       context: ./backend/analytics-ms/
       dockerfile: ../../fastapi.dockerfile
+    depends_on:
+      analytics-db:
+        condition: service_healthy
+    environment:
+      MONGO_CLUSTER: mongoCluster
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password
+      N_MONGO_INSTANCES: 2
 
   analytics-db:
     image: mongo:latest
     restart: always
+    networks:
+      - mongo
     ports:
       - "27017:27017"
+    #volumes:
+    #  - mongo-data:/data/db
+    #  - mongo-configdb:/data/configdb
+    environment:
+      MONGO_CLUSTER: mongoCluster
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGODB_DATABASE: flaskdb
+      MONGODB_HOSTNAME: mongodb
+    healthcheck:
+      #test: echo 'db.runCommand("ping").ok' | mongo mongo:27017/test --quiet
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    networks:
+      - mongo
 
   recommendation-ms:
     build: ./backend/recommendation-ms
@@ -117,3 +145,50 @@ services:
       - "7687:7687"
     environment:
       - NEO4J_AUTH=neo4j/mypassword
+
+  zookeeper-server:
+    image: bitnami/zookeeper:latest
+    ports:
+      - "2181:2181"
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+
+  kafka-server:
+    image: bitnami/kafka:latest
+    ports:
+      - "9092:9092"
+    environment:
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper-server:2181
+      - KAFKA_ADVERTISED_PORT=9092
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+    healthcheck:
+      test: [ "CMD", "kafka-topics.sh", "--list", "--bootstrap-server", "kafka-server:9092" ]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+    depends_on:
+      - zookeeper-server
+
+  setup-kafka:
+    image: bitnami/kafka:latest
+    depends_on:
+      kafka-server:
+        condition: service_healthy
+    entrypoint: [ '/bin/sh', '-c' ]
+    command: |
+      "
+      # blocks until kafka is reachable
+      kafka-topics.sh --list --bootstrap-server kafka-server:9092
+
+      echo 'Creating kafka topics'
+      kafka-topics.sh --bootstrap-server kafka-server:9092 --create --if-not-exists --topic activity-trail --replication-factor 1 --partitions 3
+
+
+      echo 'Successfully created the following topics:'
+      kafka-topics.sh --bootstrap-server kafka-server:9092 --list
+      "
+networks:
+  mongo:
+    name: mongoCluster
+    driver: bridge
