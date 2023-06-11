@@ -32,10 +32,7 @@ services:
   # <<-- BACKEND -->>
   user-ms:
     build: ./backend/user-ms/
-    ports:
-     - '3360:3360'
-    expose:
-     - '3360'
+    restart: unless-stopped
     depends_on:
       user-db:
         condition: service_healthy
@@ -44,10 +41,6 @@ services:
 
   user-db:
     image: mysql:latest
-    ports:
-      - '3306:3306'
-    expose:
-      - '3306'
     environment:
       MYSQL_ROOT_PASSWORD: 1111
       MYSQL_HOST: "used-db"
@@ -64,13 +57,14 @@ services:
       dockerfile: ../../fastapi.dockerfile
   watchlist-db:
     image: cassandra:latest
-    ports:
-      - '9093:9093'
     healthcheck:
       test: ["CMD-SHELL", "[ $$(nodetool statusgossip) = running ]"]
       interval: 30s
       timeout: 10s
       retries: 5
+    environment:
+      - CASSANDRA_SEEDS=watch-next-watchlist-db-1,watch-next-watchlist-db-2
+    scale: 2
 
   watchlist-db-setuper:
     image: cassandra:latest
@@ -103,8 +97,6 @@ services:
     restart: always
     networks:
       - mongo
-    ports:
-      - "27017:27017"
     #volumes:
     #  - mongo-data:/data/db
     #  - mongo-configdb:/data/configdb
@@ -121,13 +113,9 @@ services:
       timeout: 10s
       retries: 5
       start_period: 40s
-    networks:
-      - mongo
 
   recommendation-ms:
     build: ./backend/recommendation-ms
-    ports:
-      - "80:80"
     depends_on:
       - neo4j
     environment:
@@ -140,23 +128,16 @@ services:
 
   neo4j:
     image: neo4j:latest
-    ports:
-      - "7474:7474"
-      - "7687:7687"
     environment:
       - NEO4J_AUTH=neo4j/mypassword
 
   zookeeper-server:
     image: bitnami/zookeeper:latest
-    ports:
-      - "2181:2181"
     environment:
       - ALLOW_ANONYMOUS_LOGIN=yes
 
   kafka-server:
     image: bitnami/kafka:latest
-    ports:
-      - "9092:9092"
     environment:
       - ALLOW_PLAINTEXT_LISTENER=yes
       - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper-server:2181

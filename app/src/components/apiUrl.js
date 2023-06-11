@@ -14,12 +14,12 @@ export const checkResponse = (fetchResponse) => {
   else return json;
 };
 export function recommendationMsUrl() {
-  if (process.env.REACT_APP_IS_LOCAL) return 'http://localhost:80';
+  if (parseInt(process.env.REACT_APP_IS_LOCAL)) return 'http://localhost:80';
 
   return process.env.REACT_APP_RECOMMENDATION_MS;
 }
 export function userMsUrl() {
-  if (process.env.REACT_APP_IS_LOCAL) return 'http://localhost:3360';
+  if (parseInt(process.env.REACT_APP_IS_LOCAL)) return 'http://localhost:3360';
 
   return process.env.REACT_APP_USER_MS;
 }
@@ -29,7 +29,7 @@ export function watchlistMsUrl() {
   return process.env.REACT_APP_WATCHLIST_MS;
 }
 export function analyticsMsUrl() {
-  if (process.env.REACT_APP_IS_LOCAL) return 'http://localhost:50176';
+  if (parseInt(process.env.REACT_APP_IS_LOCAL)) return 'http://localhost:50176';
 
   return process.env.REACT_APP_ANALYTICS_MS;
 }
