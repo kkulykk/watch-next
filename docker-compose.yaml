@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
   # <<-- NGINX -->>
   nginx:
@@ -81,3 +83,25 @@ services:
     restart: always
     ports:
       - 27017:27017
+
+  recommendation-ms:
+    build: ./backend/recommendation-ms
+    ports:
+      - "80:80"
+    depends_on:
+      - neo4j
+    environment:
+      - NEO4J_HOST=neo4j
+      - NEO4J_PORT=7687
+      - NEO4J_USERNAME=myusername
+      - NEO4J_PASSWORD=mypassword
+      - TMDB_API_KEY=9be9f81b03a97c8ad1b8a4a41fb190bd
+      - TMDB_API_ENDPOINT=https://api.themoviedb.org/3
+
+  neo4j:
+    image: neo4j:latest
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      - NEO4J_AUTH=neo4j/mypassword
