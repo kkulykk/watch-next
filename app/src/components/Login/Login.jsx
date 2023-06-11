@@ -1,28 +1,50 @@
-import { useState } from 'react';
+import to from 'await-to-js';
+import Cookies from 'js-cookie';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Input, Spacer, Button, Text, Link, Loading } from '@nextui-org/react';
 
 import { validateLoginInput } from './services';
+import { alert, success } from '../alerts';
+import { loginUser } from '../Signup/services';
 
 import styles from './login.module.css';
 
 const Login = () => {
   const navigate = useNavigate();
   const [isLoginLoading, setIsLoginLoading] = useState(false);
-  const [userEmail, setUserEmail] = useState('');
+  const [userName, setUserName] = useState('');
   const [userPassword, setUserPassword] = useState('');
 
-  const processLogin = (userEmail, userPassword) => {
-    setIsLoginLoading(true);
+  const loginUserHandler = async (userName, userPassword) => {
+    const [err, res] = await to(loginUser(userName, userPassword));
 
-    if (!validateLoginInput(userEmail, userPassword)) return setIsLoginLoading(false);
+    if (!res.access_token) return alert('Error during login');
 
-    console.log('call service function');
+    console.log(res);
 
-    setIsLoginLoading(false);
+    Cookies.set('accessToken', res.access_token);
+
+    success('You successfully logged in');
 
     return navigate('/feed');
   };
+
+  const processLogin = async (userName, userPassword) => {
+    setIsLoginLoading(true);
+
+    if (!validateLoginInput(userName, userPassword)) return setIsLoginLoading(false);
+
+    await loginUserHandler(userName, userPassword);
+
+    setIsLoginLoading(false);
+  };
+
+  useEffect(() => {
+    const token = Cookies.get('accessToken');
+
+    if (token && token !== 'undefined') return navigate('/feed');
+  }, []);
 
   return (
     <div className={styles.background}>
@@ -36,11 +58,11 @@ const Login = () => {
           <Input
             css={{ $$inputColor: '#282734' }}
             color="white"
-            type="email"
-            label="Email"
-            placeholder="john.doe@email.com"
+            type="text"
+            label="Username"
+            placeholder="john.doe"
             width="400px"
-            onChange={(e) => setUserEmail(e.target.value)}
+            onChange={(e) => setUserName(e.target.value)}
           />
           <Spacer y={0.6} />
           <Input.Password
@@ -53,7 +75,7 @@ const Login = () => {
           />
           <Spacer y={1} />
           <Button
-            onPress={() => processLogin(userEmail, userPassword)}
+            onPress={() => processLogin(userName, userPassword)}
             disabled={isLoginLoading}
             css={{ background: '#3A1D51' }}
           >

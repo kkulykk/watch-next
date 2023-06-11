@@ -1,8 +1,22 @@
+import Cookies from 'js-cookie';
 import { Navbar, Text, Avatar, Dropdown, Input } from '@nextui-org/react';
 
 export default function NavigationBar() {
+  const handler = (action) => {
+    if (action === 'logout') {
+      Cookies.remove('accessToken');
+      location.replace('/login');
+    }
+  };
+
   return (
-    <Navbar isBordered variant="sticky">
+    <Navbar
+      isBordered
+      variant="sticky"
+      css={{
+        mw: '1700px'
+      }}
+    >
       <Navbar.Brand css={{ mr: '$4' }}>
         <Text b color="inherit" css={{ mr: '$20' }} hideIn="xs">
           WatchNext
@@ -34,7 +48,6 @@ export default function NavigationBar() {
         >
           <Input
             clearable
-            // contentLeft={<SearchIcon fill="var(--nextui-colors-accents6)" size={16} />}
             contentLeftStyling={false}
             css={{
               w: '100%',
@@ -53,20 +66,16 @@ export default function NavigationBar() {
         <Dropdown placement="bottom-right">
           <Navbar.Item>
             <Dropdown.Trigger>
-              <Avatar text={'RK'} />
+              <Avatar text={'JD'} />
             </Dropdown.Trigger>
           </Navbar.Item>
-          <Dropdown.Menu
-            aria-label="User menu actions"
-            color="secondary"
-            onAction={(actionKey) => console.log({ actionKey })}
-          >
+          <Dropdown.Menu aria-label="User menu actions" color="secondary" onAction={(actionKey) => handler(actionKey)}>
             <Dropdown.Item key="profile" css={{ height: '$18' }}>
               <Text b color="inherit" css={{ d: 'flex' }}>
                 Signed in as
               </Text>
               <Text b color="inherit" css={{ d: 'flex' }}>
-                kulyk@gmail.com
+                john.doe@email.com
               </Text>
             </Dropdown.Item>
             <Dropdown.Item key="settings" withDivider>

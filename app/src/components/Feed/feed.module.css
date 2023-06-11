@@ -5,7 +5,10 @@
 }
 
 .watchlistButtons {
+    margin: 0 13% 30px;
+    gap: 30px;
     display: flex;
+    justify-content: space-between;
     flex-direction: row;
 }
 

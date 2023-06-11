@@ -6,10 +6,6 @@ services:
       - 3000:3000
 
   # <<-- BACKEND -->>
-  movie-search-ms:
-    build:
-      context: ./backend/movie-search-ms/
-      dockerfile: ../../fastapi.dockerfile
   recommendation-ms:
     build:
       context: ./backend/recommendation-ms/

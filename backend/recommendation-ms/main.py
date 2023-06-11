@@ -2,6 +2,7 @@ import httpx
 from neo4j import GraphDatabase
 import requests
 from fastapi import FastAPI, Header, Response, Request
+from fastapi.middleware.cors import CORSMiddleware
 # from domain import domain
 from services import service
 from domain import domain
@@ -13,6 +14,19 @@ app = FastAPI()
 
 driver_init = domain.DriverN4j(port=7687)
 driver = driver_init.driver
+
+origins = [
+    "*"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 
 @app.get("/")

@@ -5,7 +5,6 @@ services:
   nginx:
     depends_on:
       - app
-      - movie-search-ms
       - recommendation-ms
       - user-ms
       - watchlist-ms
@@ -25,31 +24,39 @@ services:
     env_file:
       ./app/.env
     environment:
-      - REACT_APP_MOVIE_SEARCH_MS=/movie-search-ms
       - REACT_APP_RECOMMENDATION_MS=/recommendation-ms
       - REACT_APP_USER_MS=/user-ms
       - REACT_APP_WATCHLIST_MS=/watchlist-ms
       - REACT_APP_ANALYTICS_MS=/analytics-ms
 
   # <<-- BACKEND -->>
-  movie-search-ms:
-    build:
-      context: ./backend/movie-search-ms/
-      dockerfile: ../../fastapi.dockerfile
-
-  recommendation-ms:
-    build:
-      context: ./backend/recommendation-ms/
-      dockerfile: ../../fastapi.dockerfile
-  recommendation-db:
-    image: neo4j:latest
-
   user-ms:
-    build:
-      context: ./backend/user-ms/
-      dockerfile: ../../fastapi.dockerfile
+    build: ./backend/user-ms/
+    ports:
+     - '3360:3360'
+    expose:
+     - '3360'
+    depends_on:
+      user-db:
+        condition: service_healthy
+    links:
+     - user-db
+
   user-db:
     image: mysql:latest
+    ports:
+      - '3306:3306'
+    expose:
+      - '3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: 1111
+      MYSQL_HOST: "used-db"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-P", "3306"]
+      interval: 10s
+      timeout: 30s
+      retries: 5
+
 
   watchlist-ms:
     build:
@@ -57,11 +64,14 @@ services:
       dockerfile: ../../fastapi.dockerfile
   watchlist-db:
     image: cassandra:latest
+    ports:
+      - '9093:9093'
     healthcheck:
       test: ["CMD-SHELL", "[ $$(nodetool statusgossip) = running ]"]
       interval: 30s
       timeout: 10s
       retries: 5
+
   watchlist-db-setuper:
     image: cassandra:latest
     depends_on:
@@ -69,6 +79,7 @@ services:
         condition:
           service_healthy
     restart: "no"
+
     entrypoint: ["/setup_watchlist-db.sh"]
     volumes:
       - ./scripts/create_tables.cql:/create_tables.cql
@@ -78,11 +89,12 @@ services:
     build:
       context: ./backend/analytics-ms/
       dockerfile: ../../fastapi.dockerfile
+
   analytics-db:
     image: mongo:latest
     restart: always
     ports:
-      - 27017:27017
+      - "27017:27017"
 
   recommendation-ms:
     build: ./backend/recommendation-ms

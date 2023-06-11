@@ -1,23 +1,39 @@
+import to from 'await-to-js';
+import Cookies from 'js-cookie';
+import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { Input, Spacer, Button, Text, Link, Loading } from '@nextui-org/react';
 
-import { validateSignupInput } from './services';
+import { alert, success } from '../alerts';
+import { createUser, validateSignupInput } from './services';
 
 import styles from './signup.module.css';
 
 const Signup = () => {
+  const navigate = useNavigate();
   const [isSignUpLoading, setIsSignUpLoading] = useState(false);
   const [userName, setUserName] = useState('');
-  const [userAge, setUserAge] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [userPassword, setUserPassword] = useState('');
 
-  const processSignUp = (userName, userAge, userEmail, userPassword) => {
+  const createNewUserHandler = async (userName, userEmail, userPassword) => {
+    const [err, res] = await to(createUser(userName, userEmail, userPassword));
+
+    if (!res) return alert('Error while creating user');
+
+    Cookies.set('accessToken', res.access_token);
+
+    success('User successfully registered');
+
+    return navigate('/feed');
+  };
+
+  const processSignUp = async (userName, userEmail, userPassword) => {
     setIsSignUpLoading(true);
 
-    if (!validateSignupInput(userName, userAge, userEmail, userPassword)) return setIsSignUpLoading(false);
+    if (!validateSignupInput(userName, userEmail, userPassword)) return setIsSignUpLoading(false);
 
-    console.log('call service function');
+    await createNewUserHandler(userName, userEmail, userPassword);
 
     setIsSignUpLoading(false);
   };
@@ -34,21 +50,11 @@ const Signup = () => {
           <Input
             css={{ $$inputColor: '#282734' }}
             color="white"
-            type="email"
-            label="Full Name"
-            placeholder="John Doe"
+            type="text"
+            label="Nickname"
+            placeholder="john.doe"
             width="300px"
             onChange={(e) => setUserName(e.target.value)}
-          />
-          <Spacer x={0.6} />
-          <Input
-            css={{ $$inputColor: '#282734' }}
-            color="white"
-            type="email"
-            label="Age"
-            placeholder="25"
-            width="88px"
-            onChange={(e) => setUserAge(e.target.value)}
           />
         </div>
         <Spacer y={0.6} />
@@ -72,7 +78,7 @@ const Signup = () => {
         />
         <Spacer y={1} />
         <Button
-          onPress={() => processSignUp(userName, userAge, userEmail, userPassword)}
+          onPress={() => processSignUp(userName, userEmail, userPassword)}
           disabled={isSignUpLoading}
           auto
           css={{ background: '#3A1D51', width: '200px' }}

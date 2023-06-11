@@ -1,4 +1,5 @@
 import fastapi as fastapi
+from fastapi.middleware.cors import CORSMiddleware
 import fastapi.security as security
 import sqlalchemy.orm as orm
 
@@ -17,6 +18,19 @@ from pydantic.dataclasses import dataclass
 import json
 
 app = fastapi.FastAPI()
+
+origins = [
+    "*"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
@@ -51,10 +65,8 @@ async def users(
     """
     for developers: see all users in db
     """
-    user = await services.get_user_by_username(db)
-    user = vars(user)
-    return PlainTextResponse(json.dumps(user,indent=2))
-
+    user = await services.get_users(username, db)
+    return {"id": user.id, "username": user.username, "email": user.email}
 
 @app.get("/connections", response_class=PlainTextResponse)
 async def connections(
@@ -76,7 +88,7 @@ async def connections(
     """
     for developers: see all connections in db
     """
-    user = services.get_user_by_username(username)
+    user = services.get_user_by_username(username, db)
     if not user:
         raise fastapi.HTTPException(status_code=404, detail="could not find user")
     connections = await services.get_friends_by_uid(user.id, db)
@@ -222,4 +234,17 @@ async def requests(
         raise fastapi.HTTPException(status_code=401, detail="invalid username")
     return await services.get_requests_to_user(uid)
 
+
+@app.post("/info")
+async def info(
+    token: schemas.Token,
+    db: orm.Session = Depends(services.get_db),
+):
+    """
+    info about user (id, email username)
+    """
+    user = await services.decode_and_validate_token(token.token, db)
+    if not user:
+        raise fastapi.HTTPException(status_code=404, detail="could not find user")
+    return {"id": user.id, "username": user.username, "email": user.email}
 

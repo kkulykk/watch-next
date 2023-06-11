@@ -6,3 +6,10 @@ export const alert = (message = 'Oops, something went wrong') => {
     theme: 'dark'
   });
 };
+
+export const success = (message = 'Success') => {
+  return toast.success(message, {
+    position: toast.POSITION.BOTTOM_LEFT,
+    theme: 'dark'
+  });
+};

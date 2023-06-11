@@ -26,12 +26,6 @@ services:
       - 3000:3000
 
   # <<-- BACKEND -->>
-  movie-search-ms:
-    build:
-      context: ./backend/movie-search-ms/
-      dockerfile: ../../fastapi.dockerfile
-    ports:
-      - 50172:80
   recommendation-ms:
     build:
       context: ./backend/recommendation-ms/

@@ -3,6 +3,7 @@ import fastapi.security as security
 import sqlalchemy.orm as orm
 
 import jwt as jwt
+from jwt.algorithms import get_default_algorithms
 import passlib.hash as hsh
 from passlib.context import CryptContext
 
@@ -11,8 +12,6 @@ from app.repository import models
 from app.domain import schemas
 
 import time
-
-from typing import Annotated
 
 import os
 
@@ -222,7 +221,7 @@ async def decode_and_validate_token(token: str, db: orm.Session):
     token contains user info
     decode the token and return user corresponding to the data
     """
-    payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+    payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[get_default_algorithms()])
     if time.time() > payload["expires"]:
         raise fastapi.HTTPException(
             status_code=401, detail="Expired token"

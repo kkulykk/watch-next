@@ -1,4 +1,4 @@
-import { watchlistMsUrl, checkResponse } from '../../apiUrl';
+import { watchlistMsUrl, checkResponse, recommendationMsUrl } from '../../apiUrl';
 
 export const createWatchlist = async (watchlistName) => {
   const url = `${watchlistMsUrl()}/users/2811/watchlists?watchlist_name=${watchlistName}`;
@@ -22,6 +22,12 @@ export const deleteWatchlist = async (watchlistId) => {
 
 export const getWatchlistFilms = async (watchlistId) => {
   const url = `${watchlistMsUrl()}/users/2811/watchlists/${watchlistId}/movies`;
+
+  return fetch(url).then(checkResponse);
+};
+
+export const getRecommendedFilms = async () => {
+  const url = `${recommendationMsUrl()}/recommendations/2811?num_recomendations=20 `;
 
   return fetch(url).then(checkResponse);
 };

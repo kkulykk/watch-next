@@ -10,7 +10,7 @@ export const validateLoginInput = (email, password) => {
     });
 
     return false;
-  } else if (email === '' || !validateEmail(email)) {
+  } else if (email === '') {
     toast.error(validationErrors.invalidEmail, {
       position: toast.POSITION.BOTTOM_LEFT,
       theme: 'dark'
